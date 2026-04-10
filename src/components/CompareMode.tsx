@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Upload, X, Tag } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   ResponsiveContainer, LineChart, Line, AreaChart, Area,
