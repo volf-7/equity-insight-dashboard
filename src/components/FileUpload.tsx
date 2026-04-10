@@ -41,35 +41,30 @@ const FileUpload = ({ onFileLoad }: FileUploadProps) => {
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onClick={() => inputRef.current?.click()}
-      className={`relative cursor-pointer group rounded-2xl border-2 border-dashed p-16 text-center transition-all duration-300 overflow-hidden ${
+      className={`relative cursor-pointer group rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-300 overflow-hidden ${
         isDragging
           ? "border-primary bg-primary/5 scale-[1.02]"
           : "border-border hover:border-primary/50 bg-card/50 hover:bg-card"
       }`}
     >
-      {/* Animated corner accents */}
-      <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/40 rounded-tl-2xl" />
-      <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/40 rounded-tr-2xl" />
-      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary/40 rounded-bl-2xl" />
-      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/40 rounded-br-2xl" />
+      {/* Corner accents */}
+      <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary/40 rounded-tl-2xl" />
+      <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary/40 rounded-tr-2xl" />
+      <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary/40 rounded-bl-2xl" />
+      <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary/40 rounded-br-2xl" />
 
       <motion.div
-        animate={{ y: isDragging ? -5 : 0 }}
-        className="flex flex-col items-center gap-5"
+        animate={{ y: isDragging ? -3 : 0 }}
+        className="flex flex-col items-center gap-4"
       >
         <div className="relative">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 group-hover:border-primary/40 transition-colors">
-            <Upload className="w-8 h-8 text-primary" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 group-hover:border-primary/40 transition-colors">
+            <Upload className="w-7 h-7 text-primary animate-upload-pulse" />
           </div>
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute inset-0 rounded-2xl bg-primary/10 -z-10 blur-xl"
-          />
         </div>
 
         <div>
-          <p className="text-foreground font-semibold text-xl mb-2">
+          <p className="text-foreground font-semibold text-lg mb-1">
             Drop your CSV file here
           </p>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto">
