@@ -1,9 +1,13 @@
 import {
-  ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar,
+  ResponsiveContainer, AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Brush,
 } from "recharts";
 import { ComputedRow } from "@/lib/quant";
 import { useMemo } from "react";
+import CandlestickChart from "./CandlestickChart";
+import VolatilityRegime from "./VolatilityRegime";
+import ReturnHistogram from "./ReturnHistogram";
+import RollingSharpeChart from "./RollingSharpeChart";
 
 interface ChartSectionProps {
   data: ComputedRow[];
@@ -43,7 +47,6 @@ const yAxisProps = {
 
 const ChartSection = ({ data }: ChartSectionProps) => {
   const chartData = useMemo(() => {
-    // Downsample if >1000 points for performance
     if (data.length <= 1000) return data;
     const step = Math.ceil(data.length / 1000);
     return data.filter((_, i) => i % step === 0 || i === data.length - 1);
@@ -57,26 +60,8 @@ const ChartSection = ({ data }: ChartSectionProps) => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Closing Price */}
-      <div className="chart-container">
-        <h3 className="section-title mb-4">Closing Price</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="closeFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={PRIMARY_COLOR} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={PRIMARY_COLOR} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
-            <XAxis {...xAxisProps} />
-            <YAxis {...yAxisProps} domain={["auto", "auto"]} />
-            <Tooltip {...tooltipStyle} />
-            <Area type="monotone" dataKey="close" stroke={PRIMARY_COLOR} fill="url(#closeFill)" strokeWidth={1.5} dot={false} />
-            <Brush dataKey="dateStr" height={25} stroke={PRIMARY_COLOR} fill="hsl(220, 18%, 10%)" tickFormatter={() => ""} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      {/* 1. Candlestick (replaces Closing Price) */}
+      <CandlestickChart data={data} />
 
       {/* 2. Daily Log Returns */}
       <div className="chart-container">
@@ -113,6 +98,9 @@ const ChartSection = ({ data }: ChartSectionProps) => {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Volatility Regime Bar */}
+      <VolatilityRegime data={data} />
 
       {/* 4. Equity Curve */}
       <div className="chart-container">
@@ -155,6 +143,12 @@ const ChartSection = ({ data }: ChartSectionProps) => {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {/* 6. Return Distribution */}
+      <ReturnHistogram data={data} />
+
+      {/* 7. Rolling Sharpe */}
+      <RollingSharpeChart data={data} />
     </div>
   );
 };

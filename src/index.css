@@ -111,3 +111,12 @@
     font-family: var(--font-mono);
   }
 }
+
+@keyframes upload-pulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+.animate-upload-pulse {
+  animation: upload-pulse 2.5s ease-in-out infinite;
+}

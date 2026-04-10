@@ -21,6 +21,8 @@ export interface RiskMetrics {
   maxDrawdown: number;
   totalReturn: number;
   tradingDays: number;
+  var95: number;
+  var99: number;
 }
 
 export function parseCSV(text: string): OHLCRow[] {
@@ -112,6 +114,11 @@ export function computeAll(rows: OHLCRow[]): { data: ComputedRow[]; metrics: Ris
   const sharpeRatio = annualizedVolatility !== 0 ? annualizedReturn / annualizedVolatility : 0;
   const maxDrawdown = Math.min(...data.map(d => d.drawdown));
 
+  // VaR
+  const sortedReturns = [...logReturns].sort((a, b) => a - b);
+  const var95 = sortedReturns[Math.floor(sortedReturns.length * 0.05)] || 0;
+  const var99 = sortedReturns[Math.floor(sortedReturns.length * 0.01)] || 0;
+
   return {
     data,
     metrics: {
@@ -121,6 +128,8 @@ export function computeAll(rows: OHLCRow[]): { data: ComputedRow[]; metrics: Ris
       maxDrawdown,
       totalReturn: data[data.length - 1].cumulativeReturn - 1,
       tradingDays: logReturns.length,
+      var95,
+      var99,
     },
   };
 }
