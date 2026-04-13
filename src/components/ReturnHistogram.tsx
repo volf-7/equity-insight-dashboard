@@ -7,6 +7,7 @@ import { ComputedRow } from "@/lib/quant";
 
 interface Props {
   data: ComputedRow[];
+  syncId?: string;
 }
 
 const GRID_COLOR = "hsl(220, 14%, 18%)";
@@ -15,7 +16,7 @@ const DOWN_COLOR = "hsl(0, 72%, 55%)";
 const ACCENT_COLOR = "hsl(35, 90%, 55%)";
 const MUTED_COLOR = "hsl(215, 15%, 50%)";
 
-const ReturnHistogram = ({ data }: Props) => {
+const ReturnHistogram = ({ data, syncId }: Props) => {
   const chartData = useMemo(() => {
     const returns = data.slice(1).map(d => d.logReturn!).filter(v => !isNaN(v));
     const bins = 30;
@@ -30,10 +31,7 @@ const ReturnHistogram = ({ data }: Props) => {
       const hi = lo + binWidth;
       const mid = (lo + hi) / 2;
       const count = returns.filter(r => r >= lo && (i === bins - 1 ? r <= hi : r < hi)).length;
-
-      // Normal distribution overlay
-      const normalY = (returns.length * binWidth) / (std * Math.sqrt(2 * Math.PI)) *
-        Math.exp(-0.5 * ((mid - mean) / std) ** 2);
+      const normalY = (returns.length * binWidth) / (std * Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * ((mid - mean) / std) ** 2);
 
       return {
         bin: (mid * 100).toFixed(2) + "%",
@@ -57,34 +55,11 @@ const ReturnHistogram = ({ data }: Props) => {
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={histogram}>
           <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
-          <XAxis
-            dataKey="bin"
-            tick={{ fill: MUTED_COLOR, fontSize: 9, fontFamily: "'JetBrains Mono'" }}
-            tickLine={false}
-            axisLine={{ stroke: GRID_COLOR }}
-            interval={Math.floor(histogram.length / 6)}
-          />
-          <YAxis
-            tick={{ fill: MUTED_COLOR, fontSize: 10, fontFamily: "'JetBrains Mono'" }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <Tooltip
-            contentStyle={{
-              background: "hsl(220, 18%, 10%)",
-              border: "1px solid hsl(220, 14%, 18%)",
-              borderRadius: "8px",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "12px",
-              color: "hsl(210, 20%, 92%)",
-            }}
-            formatter={(v: number, name: string) => [
-              name === "count" ? `${v} days` : v.toFixed(2),
-              name === "count" ? "Frequency" : "Normal Fit"
-            ]}
-            labelFormatter={(label) => `Return: ${label}`}
-          />
-          {/* ±1σ and ±2σ lines */}
+          <XAxis dataKey="bin" tick={{ fill: MUTED_COLOR, fontSize: 9, fontFamily: "'JetBrains Mono'" }} tickLine={false} axisLine={{ stroke: GRID_COLOR }} interval={Math.floor(histogram.length / 6)} />
+          <YAxis tick={{ fill: MUTED_COLOR, fontSize: 10, fontFamily: "'JetBrains Mono'" }} tickLine={false} axisLine={false} />
+          <Tooltip contentStyle={{ background: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 14%, 18%)", borderRadius: "8px", fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", color: "hsl(210, 20%, 92%)" }}
+            formatter={(v: number, name: string) => [name === "count" ? `${v} days` : v.toFixed(2), name === "count" ? "Frequency" : "Normal Fit"]}
+            labelFormatter={(label) => `Return: ${label}`} />
           <ReferenceLine x={((-1 * std) * 100).toFixed(2) + "%"} stroke={MUTED_COLOR} strokeDasharray="5 5" />
           <ReferenceLine x={((1 * std) * 100).toFixed(2) + "%"} stroke={MUTED_COLOR} strokeDasharray="5 5" />
           <ReferenceLine x={((-2 * std) * 100).toFixed(2) + "%"} stroke={ACCENT_COLOR} strokeDasharray="3 3" />
