@@ -1,19 +1,19 @@
 import { useMemo } from "react";
 import {
   ResponsiveContainer, ComposedChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, Brush, Cell,
+  CartesianGrid, Tooltip, Cell,
 } from "recharts";
 import { ComputedRow } from "@/lib/quant";
 
 interface Props {
   data: ComputedRow[];
+  syncId?: string;
 }
 
 const GRID_COLOR = "hsl(220, 14%, 18%)";
 const UP_COLOR = "hsl(160, 70%, 45%)";
 const DOWN_COLOR = "hsl(0, 72%, 55%)";
 const MUTED_COLOR = "hsl(215, 15%, 50%)";
-const PRIMARY_COLOR = "hsl(175, 70%, 45%)";
 
 interface CandleData {
   dateStr: string;
@@ -28,7 +28,7 @@ interface CandleData {
   bullish: boolean;
 }
 
-const CandlestickChart = ({ data }: Props) => {
+const CandlestickChart = ({ data, syncId }: Props) => {
   const chartData = useMemo(() => {
     const sampled = data.length > 500
       ? data.filter((_, i) => i % Math.ceil(data.length / 500) === 0 || i === data.length - 1)
@@ -60,22 +60,15 @@ const CandlestickChart = ({ data }: Props) => {
     return [Math.floor(min - pad), Math.ceil(max + pad)];
   }, [chartData]);
 
-  // Custom candle shape
   const CandleShape = (props: any) => {
     const { x, y, width, height, payload } = props;
     if (!payload) return null;
     const { bullish, high, low, open, close } = payload;
     const color = bullish ? UP_COLOR : DOWN_COLOR;
-
-    // We need to convert price to y coordinate
     const [yMin, yMax] = yDomain;
     const chartHeight = props.background?.height || 300;
     const chartY = props.background?.y || 0;
-
-    const priceToY = (price: number) => {
-      return chartY + chartHeight - ((price - yMin) / (yMax - yMin)) * chartHeight;
-    };
-
+    const priceToY = (price: number) => chartY + chartHeight - ((price - yMin) / (yMax - yMin)) * chartHeight;
     const wickX = x + width / 2;
     const bodyTop = priceToY(Math.max(open, close));
     const bodyBot = priceToY(Math.min(open, close));
@@ -86,16 +79,7 @@ const CandlestickChart = ({ data }: Props) => {
     return (
       <g>
         <line x1={wickX} y1={wickTop} x2={wickX} y2={wickBot} stroke={color} strokeWidth={1} />
-        <rect
-          x={x + 1}
-          y={bodyTop}
-          width={Math.max(width - 2, 2)}
-          height={bodyH}
-          fill={bullish ? color : color}
-          fillOpacity={bullish ? 0.9 : 0.9}
-          stroke={color}
-          strokeWidth={0.5}
-        />
+        <rect x={x + 1} y={bodyTop} width={Math.max(width - 2, 2)} height={bodyH} fill={color} fillOpacity={0.9} stroke={color} strokeWidth={0.5} />
       </g>
     );
   };
@@ -104,15 +88,7 @@ const CandlestickChart = ({ data }: Props) => {
     if (!active || !payload?.[0]) return null;
     const d = payload[0].payload as CandleData;
     return (
-      <div style={{
-        background: "hsl(220, 18%, 10%)",
-        border: "1px solid hsl(220, 14%, 18%)",
-        borderRadius: "8px",
-        padding: "10px 14px",
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: "11px",
-        color: "hsl(210, 20%, 92%)",
-      }}>
+      <div style={{ background: "hsl(220, 18%, 10%)", border: "1px solid hsl(220, 14%, 18%)", borderRadius: "8px", padding: "10px 14px", fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "hsl(210, 20%, 92%)" }}>
         <div style={{ marginBottom: 4, color: MUTED_COLOR }}>{d.dateStr}</div>
         <div>O: <span style={{ color: d.bullish ? UP_COLOR : DOWN_COLOR }}>{d.open.toFixed(2)}</span></div>
         <div>H: <span style={{ color: UP_COLOR }}>{d.high.toFixed(2)}</span></div>
@@ -126,28 +102,16 @@ const CandlestickChart = ({ data }: Props) => {
     <div className="chart-container">
       <h3 className="section-title mb-4">Candlestick Price Action</h3>
       <ResponsiveContainer width="100%" height={350}>
-        <ComposedChart data={chartData} barGap={0} barCategoryGap="10%">
+        <ComposedChart data={chartData} barGap={0} barCategoryGap="10%" syncId={syncId}>
           <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} />
-          <XAxis
-            dataKey="dateStr"
-            tick={{ fill: MUTED_COLOR, fontSize: 10, fontFamily: "'JetBrains Mono'" }}
-            tickLine={false}
-            axisLine={{ stroke: GRID_COLOR }}
-            interval="preserveStartEnd"
-          />
-          <YAxis
-            domain={yDomain}
-            tick={{ fill: MUTED_COLOR, fontSize: 10, fontFamily: "'JetBrains Mono'" }}
-            tickLine={false}
-            axisLine={false}
-          />
+          <XAxis dataKey="dateStr" tick={{ fill: MUTED_COLOR, fontSize: 10, fontFamily: "'JetBrains Mono'" }} tickLine={false} axisLine={{ stroke: GRID_COLOR }} interval="preserveStartEnd" />
+          <YAxis domain={yDomain} tick={{ fill: MUTED_COLOR, fontSize: 10, fontFamily: "'JetBrains Mono'" }} tickLine={false} axisLine={false} />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="close" shape={<CandleShape />} isAnimationActive={false}>
             {chartData.map((entry, index) => (
               <Cell key={index} fill={entry.bullish ? UP_COLOR : DOWN_COLOR} />
             ))}
           </Bar>
-          <Brush dataKey="dateStr" height={25} stroke={PRIMARY_COLOR} fill="hsl(220, 18%, 10%)" tickFormatter={() => ""} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
